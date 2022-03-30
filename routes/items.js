@@ -1,4 +1,10 @@
-const items = require("../items.js");
+const {
+  getItem,
+  getItems,
+  addItem,
+  deleteItem,
+  updateItem,
+} = require("../controllers/items");
 
 //item schema
 const item = {
@@ -23,9 +29,7 @@ const getItemsOpts = {
       },
     },
   },
-  handler: function (req, reply) {
-    reply.send(items);
-  },
+  handler: getItems,
 };
 
 const getItemOpts = {
@@ -34,32 +38,64 @@ const getItemOpts = {
       200: item,
     },
   },
-  handler: function (req, reply) {
-    const id = req.params.id;
-    const item = items.find((item) => item.id === id);
-    if (item) {
-      reply.send(item);
-    } else {
-      reply.send({
-        msg: "No item found",
-      });
-    }
+  handler: getItem,
+};
+
+const updateItemOpts = {
+  schema: {
+    response: {
+      200: item,
+    },
   },
+  handler: updateItem,
+};
+
+const deleteItemOpts = {
+  schema: {
+    response: {
+      200: {
+        type: "object",
+        properties: {
+          message: { type: "string" },
+        },
+      },
+    },
+  },
+  handler: deleteItem,
+};
+
+const postItemsOpts = {
+  schema: {
+    body: {
+      type: "object",
+      required: ["name"],
+      properties: {
+        name: { type: "string" },
+      },
+    },
+    response: {
+      201: item,
+    },
+  },
+  handler: addItem,
 };
 
 function itemRoutes(fastify, options, done) {
-  fastify.get("/", (req, reply) => {
-    reply.send({ msg: "hello fastify" });
-  });
-
   // get all items
   fastify.get("/items", getItemsOpts);
-  // demo post route
-  fastify.post("/", (req, reply) => {
-    reply.send(req.body);
-  });
+
+  // add item
+  fastify.post("/items", postItemsOpts);
+
   // get single item
   fastify.get("/items/:id", getItemOpts);
+
+  // delete item
+  fastify.delete("/items/:id", deleteItemOpts);
+
+  // update item
+  fastify.put("/items/:id", updateItemOpts);
+
   done();
 }
 
